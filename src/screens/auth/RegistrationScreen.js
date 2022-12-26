@@ -12,16 +12,21 @@ import {
   TouchableWithoutFeedback,
   Dimensions
 } from "react-native";
+import { useDispatch } from 'react-redux';
+import { authSignUpUser } from '../../redux/auth/authOperation';
 
 const initialState = {
-  login: '',
+  nickname: '',
   email: '',
   password: ''
 };
 
 export default function RegistrationScreen({ navigation }) {
-    const [isOpenKeyboard, setIsOpenKeyboard] = useState(false);
+  const [isOpenKeyboard, setIsOpenKeyboard] = useState(false);
   const [state, setState] = useState(initialState);
+
+  const dispatch = useDispatch();
+
   const [dimensions, setDimensions] = useState(Dimensions.get("window").width-20*2);
 
   useEffect(() => {
@@ -35,9 +40,8 @@ export default function RegistrationScreen({ navigation }) {
   const onSubmit = () => {
     setIsOpenKeyboard(false);
     Keyboard.dismiss();
-    console.log(state);
     setState(initialState);
-    navigation.navigate('home');
+    dispatch(authSignUpUser(state));
   };
 
   const keyboardHide = () => {
@@ -58,8 +62,8 @@ export default function RegistrationScreen({ navigation }) {
               style={{...styles.input, width: dimensions}}
               placeholder={"Логин"}
               onFocus={() => setIsOpenKeyboard(true)}
-              value={state.login}
-              onChangeText={(value)=>setState((prevState)=>({...prevState, login: value}))}
+              value={state.nickname}
+              onChangeText={(value)=>setState((prevState)=>({...prevState, nickname: value}))}
             />
             <TextInput
               style={{...styles.input, width: dimensions}}

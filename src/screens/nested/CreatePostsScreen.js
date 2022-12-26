@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useSelector } from "react-redux";
 import {
     StyleSheet,
     View,
@@ -10,10 +11,24 @@ import {
     Keyboard,
     KeyboardAvoidingView,
     Dimensions,
-    Platform,
+    Platform
 } from 'react-native';
 import { Camera } from "expo-camera";
 import * as Location from 'expo-location';
+
+import { nanoid } from "@reduxjs/toolkit";
+import { app } from "../../../firebase/config";
+import {
+    ref,
+    uploadBytes,
+    getStorage,
+    getDownloadURL
+} from "firebase/storage";
+import { getFirestore } from "firebase/firestore";
+const db = getFirestore(app);
+import { collection, addDoc } from "firebase/firestore"; 
+
+const storage = getStorage(app);
 
 const initialData = {
   name: '',
@@ -21,13 +36,44 @@ const initialData = {
 };
 
 const CreatePostsScreen = ({ navigation }) => {
-    const [data, setData] = useState(initialData);
+    const [comment, setComment] = useState(initialData);
     const [camera, setCamera] = useState(null);
     const [photo, setPhoto] = useState(null);
     const [location, setLocation] = useState(null);
     const [isOpenKeyboard, setIsOpenKeyboard] = useState(false);
+    const { userId, nickname } = useSelector((state) => state.auth);
 
     const [dimensions, setDimensions] = useState(Dimensions.get("window").width-20*2);
+
+    const uploadPhotoToServer = async () => {
+        let photoUrl = '';
+        const response = await fetch(photo);     
+        const file = await response.blob();
+        const uniquePostId = nanoid(5);
+        const storageRef = ref(storage, `postImage/${uniquePostId}`);
+        await uploadBytes(storageRef, file);
+        await getDownloadURL(storageRef).then((url) => {
+            photoUrl = url;
+        });
+        return photoUrl;
+    };
+
+    const uploadPostToServer = async () => {
+        const photo = await uploadPhotoToServer();
+        try {
+            await addDoc(collection(db, "posts"), {
+                photo: photo,
+                comment: comment,
+                location: location,
+                userId: userId,
+                nickname: nickname
+            }).then(() => {
+                console.log('Uploaded!')
+            });
+        } catch (e) {
+            console.error("Error adding document: ", e);
+        }
+    };
 
     useEffect(() => {
         const onChange = () => {
@@ -38,6 +84,7 @@ const CreatePostsScreen = ({ navigation }) => {
     }, []);
 
     const takePhoto = async () => {
+        await Location.requestForegroundPermissionsAsync();
         const location = await Location.getCurrentPositionAsync({});
         setLocation({ latitude: location.coords.latitude, longitude: location.coords.longitude });
         const photo = await camera.takePictureAsync();
@@ -49,12 +96,12 @@ const CreatePostsScreen = ({ navigation }) => {
     const sendPhoto = () => {
         setIsOpenKeyboard(false);
         Keyboard.dismiss();
-        if (photo && location && data) {
-            setIsOpenKeyboard(false);
+        if (photo && location && comment) {
+            uploadPostToServer();
+            navigation.navigate('Posts');
             setPhoto(null);
             setLocation(null);
-            setData(initialData);
-            navigation.navigate('Posts', { photo, location, data });
+            setComment(initialData);
         } 
     };
 
@@ -80,15 +127,15 @@ const CreatePostsScreen = ({ navigation }) => {
                             style={{...styles.input, width: dimensions}}
                             placeholder='Название'
                             onFocus={() => setIsOpenKeyboard(true)}
-                            value={data.name}
-                            onChangeText={(value)=>setData((prevState)=>({...prevState, name: value}))}
+                            value={comment.name}
+                            onChangeText={(value)=>setComment((prevState)=>({...prevState, name: value}))}
                         />
                         <TextInput
                             style={{...styles.input, width: dimensions}}
                             placeholder='Местоположение'
                             onFocus={() => setIsOpenKeyboard(true)}
-                            value={data.place}
-                            onChangeText={(value)=>setData((prevState)=>({...prevState, place: value}))}
+                            value={comment.place}
+                            onChangeText={(value)=>setComment((prevState)=>({...prevState, place: value}))}
                         />
                         <TouchableOpacity style={styles.sendButton} onPress={sendPhoto}>
                             <Text style={styles.send}>Опубликовать</Text>

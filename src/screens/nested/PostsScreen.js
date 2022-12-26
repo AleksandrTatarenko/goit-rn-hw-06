@@ -3,16 +3,28 @@ import { StyleSheet, View, Text, FlatList, Image, TouchableOpacity } from 'react
 import { Ionicons } from '@expo/vector-icons';
 import { Feather } from '@expo/vector-icons';
 
-const PostsScreen = ({ route, navigation }) => {
+import { collection, onSnapshot, getFirestore, query } from "firebase/firestore";
+import app from "../../../firebase/config";
+const db = getFirestore(app);
+
+const PostsScreen = ({ navigation }) => {
     const [posts, setPosts] = useState([]);
 
+    const getPosts = async () => {
+        const q = query(collection(db, "posts"));
+        const unsubscribe = onSnapshot(q, (querySnapshot) => {
+            const posts = [];
+            querySnapshot.forEach((doc) => {
+                posts.push({...doc.data(), id: doc.id});
+            });
+            setPosts(posts);
+        });
+    };
+
     useEffect(() => {
-        if (route.params){
-            setPosts((prev) => [...prev, route.params]);
-        }
-    }, [route.params]);
-    // console.log(posts);
-    
+        getPosts();
+    }, []);
+
     return (
     <View style={styles.container}>
         <View style={styles.container}>
@@ -22,12 +34,12 @@ const PostsScreen = ({ route, navigation }) => {
                 renderItem={({item}) =>
                 <View style={{marginBottom: 10, justifyContent: "center", alignItems: "center"}}>
                     <Image source={{ uri: item.photo }} style={{ width: 350, height: 200, borderRadius: 10 }} />
-                        <Text style={{fontSize: 16, color: '#BDBDBD'}}>{item.data.name}</Text>
-                        <Text style={{fontSize: 16, color: '#BDBDBD'}}>{item.data.place}</Text>
+                        <Text style={{fontSize: 16, color: '#BDBDBD'}}>{item.comment.name}</Text>
+                        <Text style={{fontSize: 16, color: '#BDBDBD'}}>{item.comment.place}</Text>
                         <TouchableOpacity onPress={()=> navigation.navigate('Map', item.location)}>
                             <Ionicons name="location-outline" size={24} color="#BDBDBD" />
                         </TouchableOpacity>
-                        <TouchableOpacity onPress={()=> navigation.navigate('Comments')}>
+                        <TouchableOpacity onPress={()=> navigation.navigate('Comments', {id: item.id})}>
                             <Feather name="message-circle" size={24} color="#BDBDBD" />
                         </TouchableOpacity>
                 </View>}

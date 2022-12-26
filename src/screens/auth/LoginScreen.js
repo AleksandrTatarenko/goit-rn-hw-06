@@ -12,6 +12,8 @@ import {
   TouchableWithoutFeedback,
   Dimensions
 } from "react-native";
+import { useDispatch } from 'react-redux';
+import { authSignInUser } from '../../redux/auth/authOperation';
 
 const initialState = {
   email: '',
@@ -21,6 +23,9 @@ const initialState = {
 export default function LoginScreen({ navigation })  {
   const [isOpenKeyboard, setIsOpenKeyboard] = useState(false);
   const [state, setState] = useState(initialState);
+
+  const dispatch = useDispatch();
+
   const [dimensions, setDimensions] = useState(Dimensions.get("window").width - 20 * 2);
 
   useEffect(() => {
@@ -34,9 +39,8 @@ export default function LoginScreen({ navigation })  {
   const onSubmit = () => {
     setIsOpenKeyboard(false);
     Keyboard.dismiss();
-    console.log(state);
     setState(initialState);
-    navigation.navigate('home');
+    dispatch(authSignInUser(state));
   };
 
   const keyboardHide = () => {

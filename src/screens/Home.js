@@ -1,7 +1,9 @@
 import React from "react";
+import { useDispatch } from "react-redux";
+import { authSignOutUser } from "../redux/auth/authOperation";
+
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { TouchableOpacity } from "react-native";
-import { View } from "react-native";
 
 import { Ionicons } from '@expo/vector-icons';
 import { AntDesign } from '@expo/vector-icons'; 
@@ -17,6 +19,7 @@ const MainTab = createBottomTabNavigator();
 import { } from 'react-native';
 
 const Home = ({navigation}) => {
+  const dispatch = useDispatch();
 
     return (
       <MainTab.Navigator initialRouteName="Posts" screenOptions={{ "tabBarShowLabel": false, "tabBarStyle": [{ "display": "flex" }, null], 'tabBarStyle': { 'paddingHorizontal': 50, 'paddingTop': 10, 'paddingBottom': 10, 'height': 60 } }}>
@@ -27,7 +30,9 @@ const Home = ({navigation}) => {
             title: 'Публикации',
             headerShown: true,
             headerTitleStyle:{marginLeft: 140},
-            headerRight: () => (<TouchableOpacity style={{marginRight: 20}} onPress={()=>{navigation.navigate('login')}}><Ionicons name="md-exit-outline" size={30} color='#BDBDBD' /></TouchableOpacity>),
+            headerRight: () => (<TouchableOpacity style={{ marginRight: 20 }}
+              onPress={() => dispatch(authSignOutUser())}
+            ><Ionicons name="md-exit-outline" size={30} color='#BDBDBD' /></TouchableOpacity>),
             tabBarIcon: ({ focused, size, color }) => (<Ionicons name="grid-outline" size={size} color={color} />),
             tabBarActiveTintColor: '#FF6C00',
             tabBarInactiveTintColor: '#BDBDBD',
@@ -40,7 +45,7 @@ const Home = ({navigation}) => {
             headerShown: true,
             headerTitleStyle:{marginLeft: 40},
             tabBarIcon: ({ focused, size, color }) => (<AntDesign name="plus" size={size} color={color} />),
-            headerLeft: () => (<TouchableOpacity style={{marginLeft: 20}} onPress={()=>{navigation.navigate('Posts')}}><AntDesign name="arrowleft" size={24} color='#BDBDBD' /></TouchableOpacity>),
+            headerLeft: () => (<TouchableOpacity style={{ marginLeft: 20 }} onPress={()=>(navigation.navigate('Posts'))}><AntDesign name="arrowleft" size={24} color='#BDBDBD' /></TouchableOpacity>),
             tabBarActiveTintColor: '#fff',
             tabBarInactiveTintColor: '#BDBDBD',
             tabBarItemStyle: { backgroundColor: '#FF6C00', borderRadius: 50},
@@ -56,6 +61,5 @@ const Home = ({navigation}) => {
           }} />
       </MainTab.Navigator>)
 };
-
 
 export default Home;

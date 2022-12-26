@@ -24,7 +24,8 @@
       "adaptiveIcon": {
         "foregroundImage": ".src/assets/adaptive-icon.png",
         "backgroundColor": "#FFFFFF"
-      }
+      },
+      "infoPlist": { "NSAppTransportSecurity" : { "NSAllowsArbitraryLoads" : true } }
     },
     "web": {
       "favicon": "./src/assets/favicon.png"
